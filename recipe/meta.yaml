@@ -25,7 +25,7 @@ requirements:
     - pkg-config
     - make  # [unix]
   host:
-    - coin-or-utils
+    - coin-or-utils 2.11.6
     - zlib
     - bzip2
     - openblas {{ openblas }}         # [blas_impl == "openblas"]
@@ -44,6 +44,7 @@ test:
 about:
   home: https://github.com/coin-or/Osi
   dev_url: https://github.com/coin-or/Osi
+  doc_url: https://coin-or.github.io/Osi/Doxygen/
   license: EPL-2.0
   license_family: OTHER
   license_file: LICENSE
