@@ -11,7 +11,7 @@ source:
 
 build:
   number: 0
-  skip: true  # [win or blas_impl == "mkl"]
+  skip: true  # [blas_impl != "openblas"]
   run_exports:
     - {{ pin_subpackage(name, min_pin='x.x', max_pin='x.x') }}
 
