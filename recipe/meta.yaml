@@ -1,5 +1,5 @@
 {% set name = "coin-or-osi" %}
-{% set version = "0.108.8" %}
+{% set version = "0.108.7" %}
 
 package:
   name: {{ name|lower }}
@@ -7,13 +7,11 @@ package:
 
 source:
   url: https://github.com/coin-or/Osi/archive/releases/{{ version }}.tar.gz
-  sha256: 8b01a49190cb260d4ce95aa7e3948a56c0917b106f138ec0a8544fadca71cf6a
-  patches:
-    - 0001-Patch-for-downstream.patch
+  sha256: f1bc53a498585f508d3f8d74792440a30a83c8bc934d0c8ecf8cd8bc0e486228
 
 build:
   number: 0
-  skip: true  # [win]
+  skip: true  # [blas_impl != "openblas"]
   run_exports:
     - {{ pin_subpackage(name, min_pin='x.x', max_pin='x.x') }}
 
@@ -25,12 +23,14 @@ requirements:
     - pkg-config
     - make  # [unix]
   host:
-    - coin-or-utils
+    - coin-or-utils 2.11.6
     - zlib
     - bzip2
-    - libblas
-    - libcblas
-    - liblapack
+    - openblas {{ openblas }}         # [blas_impl == "openblas"]
+  run:
+    - libopenblas                     # [blas_impl == "openblas"]
+  # To stop the compiler pulling in an openmp implementation itself
+    - _openmp_mutex                   # [linux]
   run_constrained:
     - coincbc * *_metapackage
 
@@ -42,6 +42,7 @@ test:
 about:
   home: https://github.com/coin-or/Osi
   dev_url: https://github.com/coin-or/Osi
+  doc_url: https://coin-or.github.io/Osi/Doxygen/
   license: EPL-2.0
   license_family: OTHER
   license_file: LICENSE
