@@ -1,27 +1,34 @@
 #!/usr/bin/env bash
-# Get an updated config.sub and config.guess
-cp $BUILD_PREFIX/share/gnuconfig/config.* ./Osi
-cp $BUILD_PREFIX/share/gnuconfig/config.* .
 set -e
 
-UNAME="$(uname)"
-export CFLAGS="${CFLAGS} -O3"
-export CXXFLAGS="${CXXFLAGS} -O3"
-export CXXFLAGS="${CXXFLAGS//-std=c++17/-std=c++11}"
-
-if [ "${UNAME}" == "Linux" ]; then
-    export FLIBS="-lgcc_s -lgcc -lstdc++ -lm"
+# LIBRARY_PREFIX will only be available on Windows
+if [ ! -z ${LIBRARY_PREFIX+x} ]; then
+    USE_PREFIX=$LIBRARY_PREFIX
+else
+    USE_PREFIX=$PREFIX
 fi
 
-# Use only 1 thread with OpenBLAS to avoid timeouts on CIs.
-# This should have no other affect on the build. A user
-# should still be able to set this (or not) to a different
-# value at run-time to get the expected amount of parallelism.
-export OPENBLAS_NUM_THREADS=1
+if [[ "${target_platform}" == win-* ]]; then
+  COINUTILS_LIB=( --with-coinutils-lib='${LIBRARY_PREFIX}/lib/mkl_rt.lib ${LIBRARY_PREFIX}/lib/libCoinUtils.lib' )
+  COINUTILS_INC=( --with-coinutils-incdir='${LIBRARY_PREFIX_COIN}' )
+  EXTRA_FLAGS=( --enable-msvc=MD ) 
+else
+  # Get an updated config.sub and config.guess (for mac arm and lnx aarch64)
+  cp $BUILD_PREFIX/share/gnuconfig/config.* ./Osi 
+  cp $BUILD_PREFIX/share/gnuconfig/config.* .
+  COINUTLS_LIB=()
+  COINUTILS_INC=()
+  EXTRA_FLAGS=()
+fi
 
 ./configure \
-    --prefix="${PREFIX}" \
-    --exec-prefix="${PREFIX}"
+  --prefix="${USE_PREFIX}" \
+  --exec-prefix="${USE_PREFIX}" \
+  "${COINUTILS_LIB[@]}" \
+  "${COINUTILS_INC[@]}" \
+  "${EXTRA_FLAGS[@]}" || cat Osi/config.log
 
 make -j "${CPU_COUNT}"
+# Tests require the example files which are not present
+# make test
 make install
