@@ -9,7 +9,12 @@ else
 fi
 
 if [[ "${target_platform}" == win-* ]]; then
-  COINUTILS_LIB=( --with-coinutils-lib='${libdir}/mkl_rt.lib ${libdir}/libCoinUtils.lib' )
+  if [[ "${target_platform}" == win-arm64 ]]; then
+    BLAS_LIB="openblas"
+  else
+    BLAS_LIB="mkl_rt"
+  fi
+  COINUTILS_LIB=( --with-coinutils-lib="\${libdir}/${BLAS_LIB}.lib \${libdir}/libCoinUtils.lib" )
   COINUTILS_INC=( --with-coinutils-incdir='${LIBRARY_PREFIX_COIN}' )
   EXTRA_FLAGS=( --enable-msvc=MD ) 
 else
